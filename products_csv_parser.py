@@ -7,6 +7,7 @@ import logging
 import boto3
 import json
 import csv
+import sys
 import os
 
 # csv_url = https://raw.githubusercontent.com/woocommerce/woocommerce/master/sample-data/sample_products.csv
@@ -35,68 +36,96 @@ def get_csv(csv_url):
 
 			return response
 
-		except HTTPError as http_err:
-			log.info(f'HTTP error occurred: {http_err}')
-		except Exception as err:
-			log.info(f'Error occurred: {err}')
+		except requests.HTTPError as http_err:
+			message = f'HTTP error occurred: {http_err}'
+			log.info(message)
 
+			source_application = os.path.basename(__file__)
+			temp = {
+				"log_level": "ERROR",
+				"message": message,
+				"details": "",
+				"source_application": source_application
+			}
+			
+			payload = json.dumps(temp)
+			callLoggingAndNotifAPI(payload)
+
+			# exit program after logging
+			sys.exit(1)
+		except Exception as err:
+			message = f'Error occurred: {err}'
+			log.info(message)
+
+			source_application = os.path.basename(__file__)
+			temp = {
+				"log_level": "ERROR",
+				"message": message,
+				"details": "",
+				"source_application": source_application
+			}
+
+			payload = json.dumps(temp)
+			callLoggingAndNotifAPI(payload)
+
+			# exit program after logging
+			sys.exit(1)
 def readAndWrite(args):
 	csv_url = args.csv_url
+	base_path = '/home/kent/Desktop/python/python_capstone/python_capstone_project/'
+	file_name = 'output.csv'
 
-	try:
-		base_path = '/home/kent/Desktop/python/python_capstone/python_capstone_project/'
-		file_name = 'output.csv'
+	# check if 'copied_files' directory exists
+	# if not, create it
+	checkFile(file_name, base_path)
 
-		# check if 'copied_files' directory exists
-		# if not, create it
-		checkFile(file_name, base_path)
+	dir_path = ''.join((base_path, file_name))
+	response = get_csv(csv_url)
 
-		dir_path = ''.join((base_path, file_name))
-		response = get_csv(csv_url)
+	# open 'output.csv'
+	with open(dir_path, 'w', newline='') as out:	
+		reader = csv.DictReader(response.text.strip().split('\n'))
+		writer = csv.DictWriter(out, fieldnames=reader.fieldnames)
 
-		# open 'output.csv'
-		with open(dir_path, 'w', newline='') as out:	
-			reader = csv.DictReader(response.text.strip().split('\n'))
-			writer = csv.DictWriter(out, fieldnames=reader.fieldnames)
+		# write fieldnames / column names in 'output.csv'
+		writer.writeheader()
 
-			# write fieldnames / column names in 'output.csv'
-			writer.writeheader()
+		# iterate through each row of the CSV file and 
+		# write products with categories in 'output.csv'
+		for row in reader:
+			if row['Categories']:		
+				writer.writerow(row)
 
-			# iterate through each row of the CSV file and 
-			# write products with categories in 'output.csv'
-			for row in reader:
-				if row['Categories']:		
-					writer.writerow(row)
+	# generate payload to be passed as an argument to the 
+	# 'callLoggingAndNotifAPI' function
+	message = ' '.join(('Done processing CSV with URL:', csv_url))
+	source_application = os.path.basename(__file__)
+	temp = {
+		"log_level": "INFO",
+		"message": message,
+		"details": "",
+		"source_application": source_application
+	}
 
-		# generate payload to be passed as an argument to the 
-		# 'callLoggingAndNotifAPI' function
-		message = ' '.join(('Done processing CSV with URL:', csv_url))
-		source_application = os.path.basename(__file__)
-		temp = {
-			"log_level": "INFO",
-			"message": message,
-			"details": "",
-			"source_application": source_application
-		}
+	# log.info(type(temp))	
+	# log.info(temp)
 
-		log.info(type(temp))	
-		log.info(temp)
-		payload = json.dumps(temp)
-		callLoggingAndNotifAPI(payload)
-	except Exception as err:
-		# generate payload to be passed as an argument to the 
-		# 'callLoggingAndNotifAPI' function
-		message = ' '.join(('Failed to process CSV with URL:', csv_url))
-		source_application = os.path.basename(__file__)
-		temp = {
-			"log_level": "ERROR",
-			"message": message,
-			"details": "",
-			"source_application": source_application
-		}
+	payload = json.dumps(temp)
+	callLoggingAndNotifAPI(payload)
+	# except Exception as err:
+	# 	# generate payload to be passed as an argument to the 
+	# 	# 'callLoggingAndNotifAPI' function
+	# 	message = ' '.join(('Failed to process CSV with URL:', csv_url))
+	# 	source_application = os.path.basename(__file__)
+	# 	temp = {
+	# 		"log_level": "ERROR",
+	# 		"message": message,
+	# 		"details": "",
+	# 		"source_application": source_application
+	# 	}
 			
-		payload = json.dumps(temp)
-		callLoggingAndNotifAPI(payload)
+	# 	payload = json.dumps(temp)
+	# 	callLoggingAndNotifAPI(payload)
 
 def callLoggingAndNotifAPI(payload):
 	log.info('Processing request...')
@@ -111,14 +140,6 @@ def callLoggingAndNotifAPI(payload):
 
 if __name__ == '__main__':	
 	parser = argparse.ArgumentParser()
-	# subparsers = parser.add_subparsers()
-
-	# csv_get = subparsers.add_parser('csv_get')
-	# csv_get.set_defaults(func=get_csv)
-
-	# csv_readAndWrite = subparsers.add_parser('csv_readAndWrite')
-	# csv_readAndWrite.add_argument('csv_url', help='URL to CSV file.')
-	# csv_readAndWrite.set_defaults(func=readAndWrite)	
 	parser.add_argument(
 		'csv_url',
 		help=('URL to CSV file.'),
@@ -128,5 +149,3 @@ if __name__ == '__main__':
 
 
 	readAndWrite(args)
-	# if hasattr(args, 'func'):
-	# 	args.func(csv_url=args.csv_url)

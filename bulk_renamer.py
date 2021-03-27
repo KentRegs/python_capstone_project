@@ -60,9 +60,19 @@ def copy_file(target_dir, file_pattern=None, log_level=None):
 	target_dir = Path(target_dir)
 
 	if not target_dir.is_dir():
-		log.error('[target_dir] does not exist or is not a directory.')
+		log_level = 'error'
+		message = '[target_dir] does not exist or is not a directory.'
+		log.error(message)
 		
-		return False
+		temp = {
+			"log_level": log_level.upper(),
+			"message": message,
+			"details": "",
+			"source_application": source_application
+		}
+
+		payload = json.dumps(temp)
+		callLoggingAndNotifAPI(payload)	
 	else:
 		base_path = '/home/kent/Desktop/python/python_capstone/python_capstone_project/'
 		dir_name = 'copied_files'
@@ -96,6 +106,10 @@ def copy_file(target_dir, file_pattern=None, log_level=None):
 			# add a newline per row for better readability
 			request_message = '\n'.join((request_message, messages))
 			
+		if len(request_message) == 0:
+			request_message = f'File/s with file pattern <{file_pattern}> not found.'
+			log_level = 'error'
+
 		# generate payload to be passed as an argument to the 
 		# 'callLoggingAndNotifAPI' function
 		temp = {
@@ -121,8 +135,8 @@ def bulk_rename_files(target_dir, new_name, file_pattern=None, log_level=None):
 		# generate payload to be passed as an argument to the 
 		# callLoggingAndNotifAPI function
 		temp = {
-			"log_level": log_level.upper(),
-			"message": request_message,
+			"log_level": 'ERROR',
+			"message": message,
 			"details": "",
 			"source_application": source_application
 		}
@@ -162,13 +176,17 @@ def bulk_rename_files(target_dir, new_name, file_pattern=None, log_level=None):
 			# add a newline per row for better readability
 			request_message = '\n'.join((request_message, messages))
 		
+		if len(request_message) == 0:
+			request_message = f'File/s with file pattern <{file_pattern}> not found.'
+			log_level = 'error'
+
 		# generate payload to be passed as an argument to the 
 		# 'callLoggingAndNotifAPI' function
 		temp = {
-			"key1": log_level.upper(),
-			"key2": request_message,
-			"key3": "",
-			"key4": source_application
+			"log_level": log_level.upper(),
+			"message": request_message,
+			"details": "",
+			"source_application": source_application
 		}
 
 		payload = json.dumps(temp)
