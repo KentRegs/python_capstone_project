@@ -99,10 +99,10 @@ def copy_file(target_dir, file_pattern=None, log_level=None):
 		# generate payload to be passed as an argument to the 
 		# 'callLoggingAndNotifAPI' function
 		temp = {
-			"key1": log_level.upper(),
-			"key2": request_message,
-			"key3": "",
-			"key4": source_application
+			"log_level": log_level.upper(),
+			"message": request_message,
+			"details": "",
+			"source_application": source_application
 		}
 
 		payload = json.dumps(temp)
@@ -121,10 +121,10 @@ def bulk_rename_files(target_dir, new_name, file_pattern=None, log_level=None):
 		# generate payload to be passed as an argument to the 
 		# callLoggingAndNotifAPI function
 		temp = {
-			"key1": log_level.upper(),
-			"key2": message,
-			"key3": "",
-			"key4": source_application
+			"log_level": log_level.upper(),
+			"message": request_message,
+			"details": "",
+			"source_application": source_application
 		}
 
 		payload = json.dumps(temp)

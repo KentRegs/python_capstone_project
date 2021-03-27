@@ -73,12 +73,14 @@ def readAndWrite(args):
 		message = ' '.join(('Done processing CSV with URL:', csv_url))
 		source_application = os.path.basename(__file__)
 		temp = {
-			"key1": "INFO",
-			"key2": message,
-			"key3": "",
-			"key4": source_application
+			"log_level": "INFO",
+			"message": message,
+			"details": "",
+			"source_application": source_application
 		}
-			
+
+		log.info(type(temp))	
+		log.info(temp)
 		payload = json.dumps(temp)
 		callLoggingAndNotifAPI(payload)
 	except Exception as err:
@@ -87,10 +89,10 @@ def readAndWrite(args):
 		message = ' '.join(('Failed to process CSV with URL:', csv_url))
 		source_application = os.path.basename(__file__)
 		temp = {
-			"key1": "ERROR",
-			"key2": message,
-			"key3": "",
-			"key4": source_application
+			"log_level": "ERROR",
+			"message": message,
+			"details": "",
+			"source_application": source_application
 		}
 			
 		payload = json.dumps(temp)
