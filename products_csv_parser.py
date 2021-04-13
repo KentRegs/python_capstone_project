@@ -132,7 +132,7 @@ def callLoggingAndNotifAPI(payload):
 	
 	response = requests.post(
 		url="https://qm5etw0909.execute-api.ap-southeast-1.amazonaws.com/default/kent-capstone",
-		headers={'x-api-key': 'LKTJdj3oNC6qSjKHeXQb1azDUcSxN1cq1VvrPPls'},
+		headers={'x-api-key': ''},
 		data=payload
 	)
 
